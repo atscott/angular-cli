@@ -20,7 +20,7 @@ import {
   platformServer,
   ɵrenderInternal as renderInternal,
 } from '@angular/platform-server';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, UrlSerializer } from '@angular/router';
 import { Console } from '../console';
 import { joinUrlParts, stripIndexHtmlFromURL } from './url';
 
@@ -99,6 +99,7 @@ export async function renderAngular(
     // TODO(alanagius): Find a way to avoid rendering here especially for redirects as any output will be discarded.
     const envInjector = applicationRef.injector;
     const routerIsProvided = !!envInjector.get(ActivatedRoute, null);
+    const serializer = envInjector.get(UrlSerializer);
     const router = envInjector.get(Router);
     const lastSuccessfulNavigation = router.lastSuccessfulNavigation;
 
@@ -108,9 +109,9 @@ export async function renderAngular(
       hasNavigationError = false;
 
       const { finalUrl, initialUrl } = lastSuccessfulNavigation;
-      const finalUrlStringified = finalUrl.toString();
+      const finalUrlStringified = serializer.serialize(finalUrl);
 
-      if (initialUrl.toString() !== finalUrlStringified) {
+      if (serializer.serialize(initialUrl) !== finalUrlStringified) {
         const baseHref =
           envInjector.get(APP_BASE_HREF, null, { optional: true }) ??
           envInjector.get(PlatformLocation).getBaseHrefFromDOM();
